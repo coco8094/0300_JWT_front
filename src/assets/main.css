@@ -1,0 +1,166 @@
+@import 'tailwindcss';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* 設定的 width / height，把 padding 和 border 算進去，margin 不算 */
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+:root {
+  /*  */
+  --starlight-blue: rgb(79, 94, 126); /* login 星空藍背景 */
+  --starlight-silver: rgb(192, 192, 192); /* login 銀字 */
+  --background-blue: rgb(200, 209, 233); /* 主頁背景淺藍 */
+  --nav-hover-blue: rgb(218, 225, 244); /* 選單滑鼠懸浮淺藍 */
+  --nav-choose-blue: rgb(174, 190, 235); /* 選單當前目錄深藍 */
+  --list-gray: rgb(245, 245, 245); /* list 交錯淺灰 */
+  --button-blue: #393052; /* 按鈕深藍背景 */
+  --button-word-gray: #d8d4e3; /* 按鈕淺灰字 */
+  --transparent-background-black: rgba(0, 0, 0, 0.7);
+  --hr-gray: #ccc;
+  --scroller-thumb-gray: rgb(200, 200, 200);
+  --scroller-thumb-hover-gray: rgb(150, 150, 150);
+}
+
+/* ---------------------------------scrollbar------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroller-thumb-gray);
+  border-radius: 9999px; /* 給超大值來確保變成全圓角 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroller-thumb-hover-gray);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* 透明 */
+}
+
+/* ---------------------------------toast------------------------------------- */
+/* toast 樣式設定 */
+.Vue-Toastification__toast {
+  border-radius: 15px;
+  background: var(--starlight-blue);
+  color: var(--starlight-silver);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  width: max-content; /* 寬度按照內容需要的寬度 */
+  min-width: 50px;
+  max-width: 80%; /* 最寬不能超過螢幕，左右至少留 15px */
+  /*white-space: normal;  如果文字太長，可以換行 */
+}
+
+.Vue-Toastification__toast--error {
+  background-color: #d9534f;
+  color: white;
+}
+
+/* toast 動畫設定 */
+.slide-enter-active {
+  animation: toast-slide-in 800ms ease-out both;
+  /*
+  toast-slide-in: 自己取的動畫名稱 對應底下 @keyframes toast-slide-in
+  ease-out: 動畫曲線 快 → → → → 慢
+  both: 讓動畫開始前和結束後的樣式也能正確保留
+  */
+}
+
+.slide-leave-active {
+  animation: toast-slide-out 500ms ease-in both;
+}
+
+.slide-move {
+  transition: transform 800ms ease; /* 如果 transform 改變，就花 800ms 平滑移動 */
+}
+
+@keyframes toast-slide-in {
+  from {
+    /* 動畫開始狀態 */
+    opacity: 0;
+    transform: translateY(-40px); /* Toast 在正常位置的上方 40px */
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/*
+
+
+@media only screen and (max-width: 600px) {
+  .Vue-Toastification__container.top-center {
+    align-items: center;
+  }
+
+  .Vue-Toastification__container .Vue-Toastification__toast {
+    top: 20px;
+    width: max-content;
+    max-width: 80%;
+  }
+}
+*/
+
+@media only screen and (max-width: 600px) {
+  .Vue-Toastification__container.top-center {
+    align-items: center;
+    top: 20px;
+  }
+
+  .Vue-Toastification__container .Vue-Toastification__toast {
+    width: max-content;
+    max-width: 80%;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  p {
+    font-size: 14px;
+  }
+}
