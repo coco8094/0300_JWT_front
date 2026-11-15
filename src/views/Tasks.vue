@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
 import CreateTaskCard from '@/components/CreateTaskCard.vue'
 import ChooseSort from '@/components/ChooseSort.vue'
 import Loading from '@/components/Loading.vue'
@@ -12,18 +12,24 @@ const isLoading = ref(true)
 
 const isOpenCreatedCard = ref(false)
 const isOpenTaskCard = ref(false)
+const isOpenSortCard = ref(false)
 const isBoard = ref(false)
 const isOpenMore = ref(false)
 const popoverRef = ref(null)
 const divListStyle = ref({})
 const aCardInfo = ref()
+const taskList = ref()
 const asc = ref(true)
 const sortBy = ref('deadline')
-const openSortCard = ref(false)
 const tasks = ref([])
 const todo = ref([])
 const doing = ref([])
 const done = ref([])
+const statusClassMap = {
+  todo: 'bg-red-500',
+  doing: 'bg-yellow-500',
+  done: 'bg-green-500',
+}
 
 const today = new Date()
 
@@ -49,6 +55,19 @@ onMounted(async () => {
 async function getUpdateInfo() {
   await loadTasks()
 }
+
+watch(isOpenMore, (val) => {
+  if (val) {
+    isOpenSortCard.value = false
+  }
+})
+
+// 監聽 flagB：當 B 變成 true 時，強制把 A 設為 false
+watch(isOpenSortCard, (val) => {
+  if (val) {
+    isOpenMore.value = false
+  }
+})
 
 const sortedTasks = computed(() => {
   console.log('sortedTasks!!!')
@@ -176,8 +195,9 @@ const openTaskCard = (aTask) => {
   console.log(isOpenTaskCard.value)
 }
 
-const openMoreButton = async (e) => {
+const openMoreButton = async (e, items) => {
   isOpenMore.value = true
+  taskList.value = items
 
   if (isOpenMore.value) {
     const btnEl = e.currentTarget
@@ -205,12 +225,12 @@ const openMoreButton = async (e) => {
       divListStyle.value.left = `${btnRect.right + gap}px`
     }
 
-    console.log('目前計算的位置:', divListStyle.value)
+    //console.log('目前計算的位置:', divListStyle.value)
   }
 }
 
 const closeDivs = () => {
-  openSortCard.value = false
+  isOpenSortCard.value = false
   isOpenMore.value = false
 }
 </script>
@@ -269,12 +289,12 @@ const closeDivs = () => {
       <!-- 排序 -->
       <div @click.stop class="relative">
         <div class="border rounded-2xl px-2 hover:bg-[var(--nav-hover-blue)]">
-          <button @click="openSortCard = !openSortCard">
+          <button @click="isOpenSortCard = !isOpenSortCard">
             <i v-if="asc" class="fa-solid fa-arrow-down-short-wide"></i>
             <i v-if="!asc" class="fa-solid fa-arrow-up-short-wide"></i>
           </button>
         </div>
-        <div v-if="openSortCard" class="absolute top-full mt-1 bg-white">
+        <div v-if="isOpenSortCard" class="absolute top-full mt-1 bg-white">
           <ChooseSort v-model:asc="asc" v-model:sortBy="sortBy"></ChooseSort>
         </div>
       </div>
@@ -329,7 +349,10 @@ const closeDivs = () => {
             class="border border-gray-200 rounded flex flex-row items-center w-full min-w-0 hover:bg-gray-200 transition-colors duration-200"
             @click="openTaskCard(showdaytask)"
           >
-            <div class="h-2 w-2 rounded-full bg-green-500 m-2 flex-shrink-0"></div>
+            <div
+              class="h-2 w-2 rounded-full m-2 flex-shrink-0"
+              :class="statusClassMap[showdaytask.status]"
+            ></div>
             <!-- 綠色圓點 (設定 flex-shrink-0 確保它不會被擠壓變形) -->
             <div class="truncate min-w-0">
               <!--使用 truncate 代表 1.overflow-hidden（超出隱藏）2.text-ellipsis（使用刪節號表示超出）3.whitespace-nowrap（強制不換行）
@@ -340,7 +363,7 @@ const closeDivs = () => {
           <div v-if="day.hasMore" @click.stop>
             <button
               class="text-xs text-gray-400 hover:scale-105 hover:text-gray-600"
-              @click="(e) => openMoreButton(e)"
+              @click="(e) => openMoreButton(e, day.dayTasks)"
             >
               +{{ day.remainingCount }} more
             </button>
@@ -352,16 +375,26 @@ const closeDivs = () => {
             <div
               v-if="isOpenMore"
               ref="popoverRef"
-              class="fixed z-50 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 overflow-y-auto"
+              class="fixed z-50 flex flex-col gap-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 overflow-y-auto"
               :style="divListStyle"
             >
-              <h3 class="font-bold text-gray-700 mb-2">智慧彈出卡片</h3>
-              <p class="text-sm text-gray-500">
-                我會自動偵測按鈕跟畫面邊緣的距離，決定要長在按鈕上方、下方、左邊還是右邊！
-              </p>
-              <div v-for="i in 15" :key="i" class="text-xs text-gray-400 mt-1">
-                任務細節項目 {{ i }}
-              </div>
+              <button
+                v-for="itemTask in taskList"
+                :key="itemTask._id"
+                class="border border-gray-200 rounded flex flex-row items-center w-full min-w-0 hover:bg-gray-200 transition-colors duration-200"
+                @click="openTaskCard(itemTask)"
+              >
+                <div
+                  class="h-2 w-2 rounded-full m-2 flex-shrink-0"
+                  :class="statusClassMap[itemTask.status]"
+                ></div>
+                <!-- 綠色圓點 (設定 flex-shrink-0 確保它不會被擠壓變形) -->
+                <div class="truncate min-w-0">
+                  <!--使用 truncate 代表 1.overflow-hidden（超出隱藏）2.text-ellipsis（使用刪節號表示超出）3.whitespace-nowrap（強制不換行）
+              可能須搭配 min-w-0 允許被壓縮，並且外層搭配 min-w-0 及 w-full-->
+                  {{ itemTask.title }}
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -370,6 +403,7 @@ const closeDivs = () => {
     <div
       class="fixed inset-0 bg-black/70 flex justify-center items-center z-[2000]"
       v-if="isOpenTaskCard"
+      @click.stop
     >
       <TaskCard
         @closeTaskCard="isOpenTaskCard = false"
